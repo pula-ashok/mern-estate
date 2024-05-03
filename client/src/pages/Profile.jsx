@@ -8,6 +8,12 @@ import {
 } from "firebase/storage";
 import { app } from "../../firebase";
 import {
+  deleteFailure,
+  deleteStart,
+  deleteSuccess,
+  signoutFailure,
+  signoutStart,
+  signoutSuccess,
   updateFailure,
   updateStart,
   updateSuccess,
@@ -82,6 +88,36 @@ const Profile = () => {
       setSuccessFlag(false);
     }
   };
+  const deleteHandler = async () => {
+    try {
+      dispatch(deleteStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteFailure(data.message));
+      } else {
+        dispatch(deleteSuccess());
+      }
+    } catch (error) {
+      dispatch(deleteFailure(error.message));
+    }
+  };
+  const signoutHandler = async () => {
+    try {
+      dispatch(signoutStart());
+      const res = await fetch("/api/auth/signout");
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(signoutFailure(data.message));
+      } else {
+        dispatch(signoutSuccess());
+      }
+    } catch (error) {
+      dispatch(signoutFailure(error.message));
+    }
+  };
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-center my-7 font-semibold text-3xl">Profile</h1>
@@ -144,6 +180,15 @@ const Profile = () => {
           {loading ? "Loading..." : "Update"}
         </button>
       </form>
+
+      <div className="flex justify-between mt-5">
+        <span className="text-red-700 cursor-pointer" onClick={deleteHandler}>
+          Delete Account
+        </span>
+        <span className="text-red-700 cursor-pointer" onClick={signoutHandler}>
+          Sign Out
+        </span>
+      </div>
       <p className="text-sm mt-5">
         {error ? (
           <span className="text-red-700">{error}</span>
@@ -153,10 +198,6 @@ const Profile = () => {
           ""
         )}
       </p>
-      <div className="flex justify-between mt-5">
-        <span className="text-red-700 cursor-pointer">Delete Account</span>
-        <span className="text-red-700 cursor-pointer">Sign Out</span>
-      </div>
     </div>
   );
 };
