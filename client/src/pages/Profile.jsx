@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   getDownloadURL,
   getStorage,
@@ -7,17 +7,22 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../../firebase";
+import {
+  updateFailure,
+  updateStart,
+  updateSuccess,
+} from "../redux/user/userSlice";
 
 const Profile = () => {
   const [file, setFile] = useState(null);
   const [uploadError, setUploadError] = useState(false);
   const [uploadPercentage, setUploadPercentage] = useState(null);
   const [formData, setFormData] = useState({});
-  const { currentUser } = useSelector((state) => state.user);
+  const [successFlag, setSuccessFlag] = useState(false);
+  const { currentUser, error, loading } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   const fileRef = useRef();
-  console.log(uploadPercentage);
-  console.log(formData);
   useEffect(() => {
     if (file) {
       handleUpload();
@@ -50,10 +55,37 @@ const Profile = () => {
       console.log(error);
     }
   };
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+  const updateHandler = async (e) => {
+    e.preventDefault();
+    try {
+      dispatch(updateStart());
+      setSuccessFlag(false);
+
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "Application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(updateFailure(data.message));
+        setSuccessFlag(false);
+      } else {
+        dispatch(updateSuccess(data));
+        setSuccessFlag(true);
+      }
+    } catch (error) {
+      dispatch(updateFailure(error.message));
+      setSuccessFlag(false);
+    }
+  };
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-center my-7 font-semibold text-3xl">Profile</h1>
-      <form action="" className="flex flex-col gap-4">
+      <form action="" className="flex flex-col gap-4" onSubmit={updateHandler}>
         <input
           type="file"
           hidden
@@ -87,6 +119,7 @@ const Profile = () => {
           defaultValue={currentUser.username}
           id="username"
           className="rounded-lg p-3 border"
+          onChange={handleChange}
         />
         <input
           type="email"
@@ -94,17 +127,32 @@ const Profile = () => {
           defaultValue={currentUser.email}
           className="rounded-lg p-3 border"
           id="email"
+          onChange={handleChange}
         />
         <input
           type="password"
           placeholder="Password"
           id="password"
           className="rounded-lg p-3 border"
+          onChange={handleChange}
         />
-        <button className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-80">
-          Update
+        <button
+          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-80"
+          type="submit"
+          disabled={loading}
+        >
+          {loading ? "Loading..." : "Update"}
         </button>
       </form>
+      <p className="text-sm mt-5">
+        {error ? (
+          <span className="text-red-700">{error}</span>
+        ) : successFlag ? (
+          <span className="text-green-700">Updated successfully</span>
+        ) : (
+          ""
+        )}
+      </p>
       <div className="flex justify-between mt-5">
         <span className="text-red-700 cursor-pointer">Delete Account</span>
         <span className="text-red-700 cursor-pointer">Sign Out</span>
