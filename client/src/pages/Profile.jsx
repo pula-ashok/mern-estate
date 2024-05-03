@@ -18,6 +18,7 @@ import {
   updateStart,
   updateSuccess,
 } from "../redux/user/userSlice";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const [file, setFile] = useState(null);
@@ -179,8 +180,13 @@ const Profile = () => {
         >
           {loading ? "Loading..." : "Update"}
         </button>
+        <Link
+          to={"/create-listing"}
+          className="bg-green-700 text-white uppercase p-3 rounded-lg text-center hover:opacity-90 "
+        >
+          create listing
+        </Link>
       </form>
-
       <div className="flex justify-between mt-5">
         <span className="text-red-700 cursor-pointer" onClick={deleteHandler}>
           Delete Account

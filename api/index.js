@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import createConnection from "./db/createConnection.js";
 import userRouter from "./routes/user.router.js";
 import authRouter from "./routes/auth.router.js";
+import listingRouter from "./routes/listing.router.js";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api/listing", listingRouter);
 
 // app.get("/test", (req, res) => {
 //   res.json({ message: "test api route is working" });
