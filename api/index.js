@@ -5,12 +5,15 @@ import createConnection from "./db/createConnection.js";
 import userRouter from "./routes/user.router.js";
 import authRouter from "./routes/auth.router.js";
 import listingRouter from "./routes/listing.router.js";
+import path from "path";
 
 const app = express();
 
 dotenv.config();
 app.use(express.json());
 app.use(cookieParser());
+
+const __dirname = path.resolve();
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
@@ -32,4 +35,9 @@ app.use((err, req, res, next) => {
     statusCode,
     message,
   });
+});
+
+app.use(express.static(path.join(__dirname, "/client/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
 });
