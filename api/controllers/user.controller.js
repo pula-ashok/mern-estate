@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import bcryptjs from "bcryptjs";
+import Listing from "./../models/listing.model.js";
 
 export const testapi = (req, res) => {
   res.json({ message: "test api route is working fine" });
@@ -41,6 +42,15 @@ export const deleteUser = async (req, res, next) => {
     await User.findByIdAndDelete(userId);
     res.clearCookie("access_token");
     res.status(201).json({ messsage: "User deleted successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserListings = async (req, res, next) => {
+  try {
+    const listings = await Listing.find({ userRef: req.params.id });
+    return res.status(200).json(listings);
   } catch (error) {
     next(error);
   }
